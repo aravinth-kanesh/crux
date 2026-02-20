@@ -1,6 +1,6 @@
 # Optimal Rubik's Cube Solver
 
-Finds provably optimal solutions to any 3×3 Rubik's cube scramble — guaranteed
+Finds provably optimal solutions to any 3×3 Rubik's cube scramble - guaranteed
 minimum move count (≤20 moves, by God's Number).
 
 Implements IDA* (Iterative Deepening A\*) with pattern databases, based on
@@ -11,10 +11,10 @@ Pattern Databases*.
 
 The solver uses IDA* with two heuristics combined via `max()`:
 
-- **Corner pattern database** — stores the minimum moves to solve all 8 corners
+- **Corner pattern database** - stores the minimum moves to solve all 8 corners
   for every possible corner configuration (8! × 3⁷ = 88,179,840 states, ~42 MB).
   Built once via BFS from the solved state and saved to disk.
-- **Edge orientation database** — stores the minimum moves to correctly orient
+- **Edge orientation database** - stores the minimum moves to correctly orient
   all 12 edges (2¹¹ = 2048 states, ~2 KB).
 
 Both are admissible heuristics (never overestimate), so IDA* finds optimal solutions.
@@ -30,7 +30,7 @@ cmake --build build-release
 
 ## Usage
 
-On first use, build the pattern databases (one-time, ~5–10 minutes):
+On first use, build the pattern databases (one-time, ~5-10 minutes):
 
 ```bash
 mkdir -p data
@@ -77,7 +77,7 @@ With the corner pattern database loaded:
 | 20 moves | minutes |
 
 Without the pattern database (`--no-pattern-db`), the misplaced-cubies heuristic
-is much weaker — expect 10–100× slower for deep scrambles.
+is much weaker - expect 10–100× slower for deep scrambles.
 
 ## Tests
 
@@ -92,18 +92,18 @@ admissibility.
 
 ```
 src/
-  cube.h / cube.cpp         — cube state, composition, Lehmer encoding
-  moves.h / moves.cpp       — 18 moves, move tables, parsing, pruning
-  solver.h / solver.cpp     — IDA* implementation
-  pattern_db.h / pattern_db.cpp  — corner and edge-orient pattern databases
-  heuristic.h / heuristic.cpp    — heuristic wrappers
-  utils.h / utils.cpp       — validation, formatting
-  main.cpp                  — CLI entry point
-  build_db_main.cpp         — pattern database builder
+  cube.h / cube.cpp         - cube state, composition, Lehmer encoding
+  moves.h / moves.cpp       - 18 moves, move tables, parsing, pruning
+  solver.h / solver.cpp     - IDA* implementation
+  pattern_db.h / pattern_db.cpp  - corner and edge-orient pattern databases
+  heuristic.h / heuristic.cpp    - heuristic wrappers
+  utils.h / utils.cpp       - validation, formatting
+  main.cpp                  - CLI entry point
+  build_db_main.cpp         - pattern database builder
 tests/
-  test_moves.cpp            — move generation and encoding tests
-  test_solver.cpp           — solver correctness and optimality tests
-  test_pattern_db.cpp       — pattern database admissibility tests
+  test_moves.cpp            - move generation and encoding tests
+  test_solver.cpp           - solver correctness and optimality tests
+  test_pattern_db.cpp       - pattern database admissibility tests
 ```
 
 ## References
