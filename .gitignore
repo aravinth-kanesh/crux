@@ -8,6 +8,9 @@ build-*/
 # Pattern databases — large binary files, generated locally
 data/
 
+# Project notes (not for repo)
+CLAUDE.md
+
 # macOS
 .DS_Store
 .AppleDouble
