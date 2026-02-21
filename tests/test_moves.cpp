@@ -99,10 +99,7 @@ TEST(sexy_move_order_6) {
 // Test: U-perm has order 3
 // ============================================================
 TEST(u_perm_order_3) {
-    // R2 U R U R' U' R' U' R' U R' has order... actually let's test simpler
-    // R has order 4, tested above
-    // Let's test: F R U R' U' F' has order? complex, skip
-    // Test: (R U2 R' U') has order... let's just verify apply_moves works
+    // Verify apply_moves and its inverse return to solved
     auto seq = parse_move_sequence("R U");
     CubeState s = apply_moves(SOLVED_CUBE, seq);
     ASSERT(!s.is_solved());

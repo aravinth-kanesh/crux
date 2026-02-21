@@ -41,11 +41,3 @@ private:
 // Admissible heuristic: max(misplaced_corners/4, misplaced_edges/4).
 // Weak but requires no precomputed data — useful for testing.
 int heuristic_misplaced(const CubeState& state);
-
-// Precompute coordinate move tables for a future optimised IDA* implementation.
-// These replace compose() in the hot search loop with direct index lookups.
-void build_move_tables(
-    std::array<std::array<uint32_t, 40320>, NUM_MOVES>& corner_perm_table,
-    std::array<std::array<uint32_t,  2187>, NUM_MOVES>& corner_orient_table,
-    std::array<std::array<uint32_t,  2048>, NUM_MOVES>& edge_orient_table
-);

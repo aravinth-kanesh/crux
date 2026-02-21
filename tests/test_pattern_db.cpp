@@ -108,14 +108,14 @@ TEST(edge_orient_all_states_populated) {
 // then verify admissibility against the actual solver.
 //
 // NOTE: Full corner DB (88M states) is too slow to build in tests.
-// We verify:
+// Checks:
 //   1. Solved state = 0
 //   2. All 1-move states have value = 1
 //   3. All n-move states have value <= n (admissibility)
 // ============================================================
 TEST(corner_db_solved_state) {
     CornerPatternDB db;
-    db.build();  // ~5min in production, but we need to verify structure
+    db.build();  // ~5 min in production; here only to verify the solved state entry
     // Only verify the solved state and immediate neighbors
     ASSERT_EQ((int)db.lookup(SOLVED_CUBE), 0);
 }

@@ -127,6 +127,8 @@ int main(int argc, char* argv[]) {
         std::filesystem::create_directories(data_dir);
         dbs.load_or_build(data_dir);
         build_cp_move_table();
+        build_co_move_table();
+        build_eo_move_table();
         fast_solver = std::make_unique<FastIDASolver>(dbs.corner_db, dbs.edge_orient_db);
         solve_fn = [&](const CubeState& s, int d) { return fast_solver->solve(s, d); };
     } else {
@@ -191,7 +193,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        // If we have the original scramble, print scramble + solution
+        // Print scramble + solution when available
         if (!scramble_moves.empty()) {
             std::cout << "Scramble:  " << format_move_sequence(scramble_moves) << "\n";
             std::cout << "Solution:  " << format_move_sequence(result.moves) << "\n";

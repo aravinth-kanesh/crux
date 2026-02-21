@@ -46,7 +46,7 @@ uint32_t CornerPatternDB::populated_count() const {
 // Build corner pattern DB via BFS
 //
 // State space: 8! * 3^7 = 88,179,840 states
-// We index states by (corner_perm_idx * 2187 + corner_orient_idx)
+// States indexed by (corner_perm_idx * 2187 + corner_orient_idx)
 //
 // BFS from solved state. For each state, apply all 18 moves
 // and record the distance to the new state.
