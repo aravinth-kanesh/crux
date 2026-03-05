@@ -31,3 +31,6 @@ compile_commands.json
 
 # CTest output
 Testing/
+
+# Claude Code local config
+.claude/

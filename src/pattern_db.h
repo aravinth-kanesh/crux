@@ -52,8 +52,11 @@ public:
     // Look up the stored heuristic value for a cube state
     uint8_t lookup(const CubeState& state) const;
 
-    // Direct index lookup
-    uint8_t lookup_idx(uint32_t idx) const { return data_[idx]; }
+    // Direct index lookup — unpacks nibble from packed storage
+    uint8_t lookup_idx(uint32_t idx) const {
+        uint8_t byte = data_[idx >> 1];
+        return (idx & 1) ? (byte >> 4) : (byte & 0x0F);
+    }
 
     // Return number of entries populated (for verification)
     uint32_t populated_count() const;
