@@ -108,8 +108,8 @@ bool validate_cube(const CubeState& state, std::string& error_msg) {
 }
 
 // ASCII art visualization of cube
-// Uses face colors: U=W(white), D=Y(yellow), F=G(green),
-//                   B=B(blue), L=O(orange), R=R(red)
+// Uses face colours: U=W(white), D=Y(yellow), F=G(green),
+//                    B=B(blue), L=O(orange), R=R(red)
 // Layout (cross):
 //       UUU
 //       UUU

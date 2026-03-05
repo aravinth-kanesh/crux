@@ -1,4 +1,5 @@
 #pragma once
+
 #include <cstdint>
 #include <array>
 #include <string>
@@ -67,12 +68,12 @@ std::array<uint8_t, NUM_CORNERS> decode_corner_perm  (uint32_t idx);
 std::array<uint8_t, NUM_CORNERS> decode_corner_orient(uint32_t idx);
 std::array<uint8_t, NUM_EDGES>   decode_edge_orient  (uint32_t idx);
 
-// Corner DB index: perm * 2187 + orient — 8! × 3^7 = 88,179,840 entries
+// Corner DB index: perm * 2187 + orient, 8! × 3^7 = 88,179,840 entries
 inline uint32_t corner_db_index(const CubeState& c) {
     return encode_corner_perm(c.cp) * 2187u + encode_corner_orient(c.co);
 }
 
-// Edge orientation index — 2^11 = 2048 entries
+// Edge orientation index, 2^11 = 2048 entries
 inline uint32_t edge_orient_index(const CubeState& c) {
     return encode_edge_orient(c.eo);
 }

@@ -27,9 +27,7 @@ static int g_tests_failed = 0;
 #define ASSERT_EQ(a, b) do { if ((a) != (b)) { std::ostringstream ss; ss << "Expected " << (b) << " got " << (a) << " at line " << __LINE__; throw std::runtime_error(ss.str()); } } while(0)
 #define ASSERT_LE(a, b) do { if ((a) > (b)) { std::ostringstream ss; ss << (a) << " > " << (b) << " at line " << __LINE__; throw std::runtime_error(ss.str()); } } while(0)
 
-// ============================================================
 // Edge orientation DB tests
-// ============================================================
 TEST(edge_orient_solved) {
     EdgeOrientDB db;
     db.build();
@@ -102,7 +100,6 @@ TEST(edge_orient_all_states_populated) {
     }
 }
 
-// ============================================================
 // Corner DB correctness with small spot checks
 // Build a partial corner DB using BFS for just a few levels,
 // then verify admissibility against the actual solver.
@@ -112,7 +109,6 @@ TEST(edge_orient_all_states_populated) {
 //   1. Solved state = 0
 //   2. All 1-move states have value = 1
 //   3. All n-move states have value <= n (admissibility)
-// ============================================================
 TEST(corner_db_solved_state) {
     CornerPatternDB db;
     db.build();  // ~5 min in production; here only to verify the solved state entry

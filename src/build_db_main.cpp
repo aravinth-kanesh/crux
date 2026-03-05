@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
 
     std::filesystem::create_directories(data_dir);
 
-    std::cerr << "Initializing move tables...\n";
+    std::cerr << "Initialising move tables...\n";
     init_moves();
 
     PatternDatabases dbs;

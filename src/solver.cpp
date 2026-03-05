@@ -4,10 +4,6 @@
 #include <cassert>
 #include <iostream>
 
-// ============================================================
-// IDASolver implementation
-// ============================================================
-
 IDASolver::IDASolver(HeuristicFn heuristic)
     : heuristic_(std::move(heuristic)), nodes_explored_(0) {}
 
@@ -79,13 +75,8 @@ int IDASolver::search(const CubeState& state, int g, int threshold) {
     return min_threshold;
 }
 
-// ============================================================
-// Simple heuristic: misplaced cubies (admissible)
-// Each move cycles exactly 4 corners and 4 edges.
-// Therefore: at most 4 corners can be placed correctly per move,
-// and at most 4 edges can be placed correctly per move.
-// Taking max of the two separate bounds gives an admissible heuristic.
-// ============================================================
+// Admissible: each move places at most 4 corners and 4 edges correctly,
+// so misplaced/4 (rounded up) is a lower bound for each group.
 int heuristic_misplaced(const CubeState& state) {
     int misplaced_corners = 0;
     for (int i = 0; i < NUM_CORNERS; i++) {

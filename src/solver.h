@@ -39,5 +39,5 @@ private:
 };
 
 // Admissible heuristic: max(misplaced_corners/4, misplaced_edges/4).
-// Weak but requires no precomputed data — useful for testing.
+// Weak but requires no precomputed data; useful for testing.
 int heuristic_misplaced(const CubeState& state);

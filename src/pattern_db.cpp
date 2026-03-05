@@ -6,10 +6,6 @@
 #include <cstring>
 #include <chrono>
 
-// ============================================================
-// CornerPatternDB
-// ============================================================
-
 CornerPatternDB::CornerPatternDB() {
     // Packed nibbles: CORNER_DB_SIZE entries, 4 bits each
     // Need ceil(CORNER_DB_SIZE / 2) bytes
@@ -42,15 +38,8 @@ uint32_t CornerPatternDB::populated_count() const {
     return count;
 }
 
-// ============================================================
-// Build corner pattern DB via BFS
-//
-// State space: 8! * 3^7 = 88,179,840 states
-// States indexed by (corner_perm_idx * 2187 + corner_orient_idx)
-//
-// BFS from solved state. For each state, apply all 18 moves
-// and record the distance to the new state.
-// ============================================================
+// BFS from solved state: 8! * 3^7 = 88,179,840 states,
+// indexed by (corner_perm_idx * 2187 + corner_orient_idx).
 void CornerPatternDB::build() {
     auto t_start = std::chrono::high_resolution_clock::now();
 
@@ -156,9 +145,7 @@ bool CornerPatternDB::load(const std::string& path) {
     return true;
 }
 
-// ============================================================
 // EdgeOrientDB
-// ============================================================
 
 EdgeOrientDB::EdgeOrientDB() {
     data_.fill(255);  // 255 = unvisited
@@ -225,9 +212,8 @@ bool EdgeOrientDB::load(const std::string& path) {
     return true;
 }
 
-// ============================================================
-// PatternDatabases combined
-// ============================================================
+// PatternDatabases
+
 bool PatternDatabases::load_or_build(const std::string& data_dir) {
     std::string corner_path    = data_dir + "/corner_pattern.db";
     std::string edge_orient_path = data_dir + "/edge_orient.db";

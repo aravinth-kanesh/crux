@@ -1,5 +1,5 @@
 // Tests for FastIDASolver and the three coordinate move tables.
-// No corner pattern DB required — the table tests are standalone.
+// No corner pattern DB required; table tests are standalone.
 #include "../src/cube.h"
 #include "../src/moves.h"
 #include "../src/solver.h"
@@ -23,9 +23,7 @@ static int g_tests_run = 0, g_tests_passed = 0, g_tests_failed = 0;
 #define ASSERT(cond) do { if (!(cond)) throw std::runtime_error("Assertion failed: " #cond " at line " + std::to_string(__LINE__)); } while(0)
 #define ASSERT_EQ(a,b) do { if ((a)!=(b)) { std::ostringstream ss; ss << (a) << " != " << (b) << " at line " << __LINE__; throw std::runtime_error(ss.str()); } } while(0)
 
-// ----------------------------------------------------------------
 // CP_MOVE_TABLE tests
-// ----------------------------------------------------------------
 
 TEST(cp_move_table_from_solved) {
     // From the solved state cp_idx=0, right and left multiplication agree,
@@ -44,7 +42,7 @@ TEST(cp_move_table_from_solved) {
 
 TEST(cp_move_table_chained) {
     // Apply R then U via table; compare against right-multiplication result.
-    // (Right mult: compose(state, mv) — use the existing compose() function.)
+    // (Right mult: compose(state, mv); uses the existing compose() function.)
     CubeState after_R  = compose(SOLVED_CUBE, MOVE_TABLE[MoveIndex::R]);
     CubeState after_RU = compose(after_R,     MOVE_TABLE[MoveIndex::U]);
     uint32_t expected = encode_corner_perm(after_RU.cp);
@@ -62,9 +60,7 @@ TEST(cp_move_table_inverse) {
     }
 }
 
-// ----------------------------------------------------------------
 // CO_MOVE_TABLE tests
-// ----------------------------------------------------------------
 
 TEST(co_move_table_from_solved) {
     // CO_MOVE_TABLE[m][0] must match the co_idx after right-multiplying
@@ -90,9 +86,7 @@ TEST(co_move_table_inverse) {
     }
 }
 
-// ----------------------------------------------------------------
 // EO_MOVE_TABLE tests
-// ----------------------------------------------------------------
 
 TEST(eo_move_table_from_solved) {
     // EO_MOVE_TABLE[m][0] must match the eo_idx after right-multiplying
@@ -118,9 +112,7 @@ TEST(eo_move_table_inverse) {
     }
 }
 
-// ----------------------------------------------------------------
 // Cross-consistency: table vs direct encode after compose()
-// ----------------------------------------------------------------
 
 TEST(co_move_table_chained) {
     // Apply F then B via CO table; compare against right-multiplication result.

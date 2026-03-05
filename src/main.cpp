@@ -114,10 +114,10 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Initialize move tables
+    // Initialise move tables
     init_moves();
 
-    // Set up solver — FastIDASolver when pattern DBs are available, IDASolver otherwise.
+    // Set up solver: FastIDASolver when pattern DBs are available, IDASolver otherwise.
     PatternDatabases dbs;
     std::unique_ptr<FastIDASolver> fast_solver;
     std::unique_ptr<IDASolver>     ida_solver;

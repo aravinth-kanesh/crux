@@ -70,7 +70,7 @@ CubeState inverse(const CubeState& c) {
 }
 
 // Lehmer (factoriadic) encoding: maps a permutation of {0..n-1} to [0, n!-1].
-// O(n²) — fine for n ≤ 12.
+// O(n²), fine for n ≤ 12.
 static uint32_t lehmer_encode(const uint8_t* perm, int n) {
     uint32_t idx = 0;
     for (int i = 0; i < n; i++) {

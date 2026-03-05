@@ -22,18 +22,12 @@ static int g_tests_failed = 0;
 #define ASSERT(cond) do { if (!(cond)) throw std::runtime_error("Assertion failed: " #cond " at line " + std::to_string(__LINE__)); } while(0)
 #define ASSERT_EQ(a, b) do { if ((a) != (b)) { std::ostringstream ss; ss << "Expected " << (b) << " got " << (a) << " at line " << __LINE__; throw std::runtime_error(ss.str()); } } while(0)
 
-// ============================================================
-// Test: solved cube is solved
-// ============================================================
 TEST(solved_is_solved) {
     CubeState s;
     ASSERT(s.is_solved());
     ASSERT(s == SOLVED_CUBE);
 }
 
-// ============================================================
-// Test: applying a move then its inverse returns to solved
-// ============================================================
 TEST(move_inverse) {
     for (int m = 0; m < NUM_MOVES; m++) {
         CubeState s = apply_move(SOLVED_CUBE, m);
@@ -48,9 +42,6 @@ TEST(move_inverse) {
     }
 }
 
-// ============================================================
-// Test: applying the same move 4 times returns to solved (for CW/CCW)
-// ============================================================
 TEST(move_order_4) {
     // U, U', F, F', etc. all have order 4
     for (int m = 0; m < NUM_MOVES; m += 3) {  // Skip half-turns (order 2)
@@ -64,9 +55,6 @@ TEST(move_order_4) {
     }
 }
 
-// ============================================================
-// Test: applying half-turn twice returns to solved
-// ============================================================
 TEST(half_turn_order_2) {
     // U2, D2, F2, B2, L2, R2 are moves 2,5,8,11,14,17
     for (int m = 2; m < NUM_MOVES; m += 3) {
@@ -79,10 +67,7 @@ TEST(half_turn_order_2) {
     }
 }
 
-// ============================================================
-// Test: known sequence returns to solved after 6 reps
 // (T-perm has order 2, Sexy move has order 6)
-// ============================================================
 TEST(sexy_move_order_6) {
     // Sexy move: R U R' U' has order 6
     auto sexy = parse_move_sequence("R U R' U'");
@@ -95,9 +80,6 @@ TEST(sexy_move_order_6) {
     }
 }
 
-// ============================================================
-// Test: U-perm has order 3
-// ============================================================
 TEST(u_perm_order_3) {
     // Verify apply_moves and its inverse return to solved
     auto seq = parse_move_sequence("R U");
@@ -109,9 +91,6 @@ TEST(u_perm_order_3) {
     ASSERT(s.is_solved());
 }
 
-// ============================================================
-// Test: compose is associative
-// ============================================================
 TEST(compose_associative) {
     CubeState a = apply_move(SOLVED_CUBE, MoveIndex::R);
     CubeState b = apply_move(SOLVED_CUBE, MoveIndex::U);
@@ -123,9 +102,6 @@ TEST(compose_associative) {
     ASSERT(lhs == rhs);
 }
 
-// ============================================================
-// Test: inverse works correctly
-// ============================================================
 TEST(inverse_correctness) {
     CubeState m = apply_move(SOLVED_CUBE, MoveIndex::F);
     CubeState inv_m = inverse(m);
@@ -139,9 +115,6 @@ TEST(inverse_correctness) {
     ASSERT(result.is_solved());
 }
 
-// ============================================================
-// Test: parse and format move sequences
-// ============================================================
 TEST(parse_format_moves) {
     std::string seq_str = "R U R' U' F2 D' L2 U B";
     auto moves = parse_move_sequence(seq_str);
@@ -151,9 +124,6 @@ TEST(parse_format_moves) {
     ASSERT_EQ(reformatted, seq_str);
 }
 
-// ============================================================
-// Test: redundancy pruning
-// ============================================================
 TEST(redundancy_pruning) {
     // Same face consecutive: U then U' is redundant
     ASSERT(is_redundant_sequence(MoveIndex::U, MoveIndex::Up));
@@ -168,9 +138,6 @@ TEST(redundancy_pruning) {
     ASSERT(!is_redundant_sequence(-1, MoveIndex::U));
 }
 
-// ============================================================
-// Test: Lehmer encoding is bijective for small cases
-// ============================================================
 TEST(lehmer_encoding) {
     // For corner permutation: encode then decode should give identity
     std::array<uint8_t, NUM_CORNERS> cp = {0,1,2,3,4,5,6,7}; // solved
@@ -193,9 +160,6 @@ TEST(lehmer_encoding) {
     }
 }
 
-// ============================================================
-// Test: corner orientation encoding
-// ============================================================
 TEST(corner_orient_encoding) {
     std::array<uint8_t, NUM_CORNERS> co_solved = {0,0,0,0,0,0,0,0};
     ASSERT_EQ(encode_corner_orient(co_solved), 0u);
@@ -218,26 +182,18 @@ TEST(corner_orient_encoding) {
     }
 }
 
-// ============================================================
-// Test: applying R U R' U' F2 D' L B changes state correctly
-// ============================================================
 TEST(known_scramble_not_solved) {
     auto moves = parse_move_sequence("R U R' U' F2 D' L B");
     CubeState state = apply_moves(SOLVED_CUBE, moves);
     ASSERT(!state.is_solved());
 }
 
-// ============================================================
-// Test: corner DB index of solved state is 0
-// ============================================================
 TEST(corner_db_index_solved) {
     uint32_t idx = corner_db_index(SOLVED_CUBE);
     ASSERT_EQ(idx, 0u);
 }
 
-// ============================================================
 // Main
-// ============================================================
 int main() {
     init_moves();
 

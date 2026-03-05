@@ -38,8 +38,8 @@ void build_eo_move_table();
 // IDA* solver that avoids CubeState copies and Lehmer re-encoding on every node.
 //
 // Bottlenecks in the naive solver:
-//   1. compose() — allocates and fills a new CubeState (~80 ops per node)
-//   2. encode_corner_perm() — Lehmer encoding is O(n²) (~100 ops per heuristic call)
+//   1. compose(): allocates and fills a new CubeState (~80 ops per node)
+//   2. encode_corner_perm(): Lehmer encoding is O(n²) (~100 ops per heuristic call)
 //   3. encode_corner_orient() / encode_edge_orient() in the heuristic (~18 ops)
 //
 // This solver instead:
@@ -68,7 +68,7 @@ private:
     uint64_t         nodes_explored_;
     std::vector<int> path_;
 
-    // Search state — modified in-place, saved/restored per recursion level (52 bytes)
+    // Search state, modified in-place, saved/restored per recursion level (52 bytes)
     uint8_t  cp_[8], co_[8], ep_[12], eo_[12];
     uint32_t cp_idx_;  // Lehmer index of cp_, kept in sync by apply()
     uint32_t co_idx_;  // base-3 index of co_, kept in sync by apply()

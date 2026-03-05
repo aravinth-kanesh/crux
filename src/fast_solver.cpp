@@ -73,7 +73,7 @@ SolveResult FastIDASolver::solve(const CubeState& start, int max_depth) {
     nodes_explored_ = 0;
     path_.clear();
 
-    // Load initial state — encode indices once, reuse across threshold iterations
+    // Load initial state; encode indices once, reuse across threshold iterations
     for (int i = 0; i < 8;  i++) { cp_[i] = start.cp[i]; co_[i] = start.co[i]; }
     for (int i = 0; i < 12; i++) { ep_[i] = start.ep[i]; eo_[i] = start.eo[i]; }
     const uint32_t start_cp_idx = encode_corner_perm(start.cp);
@@ -118,7 +118,7 @@ SolveResult FastIDASolver::solve(const CubeState& start, int max_depth) {
             std::chrono::duration<double>(t1 - t0).count()};
 }
 
-// Two table lookups — no encoding.
+// Two table lookups, no encoding.
 int FastIDASolver::heuristic() const {
     int h = (int)corner_db_.lookup_idx(cp_idx_ * 2187u + co_idx_);
     return std::max(h, (int)edge_orient_db_.lookup_idx(eo_idx_));
@@ -163,7 +163,7 @@ int FastIDASolver::search(int g, int threshold, int prev_move) {
 
     nodes_explored_++;
 
-    // Save state — 52 bytes, fits in one cache line
+    // Save state (52 bytes, fits in one cache line)
     uint8_t  scp[8], sco[8], sep[12], seo[12];
     uint32_t scp_idx = cp_idx_, sco_idx = co_idx_, seo_idx = eo_idx_;
     memcpy(scp, cp_, 8);  memcpy(sco, co_, 8);
