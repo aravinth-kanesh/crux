@@ -1,6 +1,6 @@
 # Optimal Rubik's Cube Solver
 
-Finds provably optimal solutions to any 3×3 Rubik's cube scramble — guaranteed
+Finds provably optimal solutions to any 3×3 Rubik's cube scramble, guaranteed
 minimum move count (≤20 moves, by God's Number).
 
 Implements IDA* (Iterative Deepening A\*) with pattern databases, based on
@@ -10,17 +10,17 @@ Pattern Databases*.
 ## Algorithm
 
 The solver uses `FastIDASolver`, a cache-friendly IDA* variant with O(1) index
-updates via precomputed move tables. The heuristic is `max(h₁, h₂, h₃)`:
+updates via precomputed move tables. The heuristic is `max(h₁, h₂, h₃, h₄)`:
 
-- **Corner pattern database** — minimum moves to solve all 8 corners for every
+- **Corner pattern database** - minimum moves to solve all 8 corners for every
   corner configuration (8! × 3⁷ = 88,179,840 states, ~42 MB on disk).
-- **Edge partial database, group 0** — minimum moves to correctly place and
+- **Edge partial database, group 0** - minimum moves to correctly place and
   orient edges UR, UF, UL, UB, DR, DF (P(12,6) × 2⁶ = 42,577,920 states, ~21 MB).
-- **Edge partial database, group 1** — same for edges DL, DB, FR, FL, BL, BR (~21 MB).
-- **Edge partial database, group 2** — same for alternating edges UR, UL, DR, DL, FR, BL
+- **Edge partial database, group 1** - same for edges DL, DB, FR, FL, BL, BR (~21 MB).
+- **Edge partial database, group 2** - same for alternating edges UR, UL, DR, DL, FR, BL
   (edges 0,2,4,6,8,10; ~21 MB). Overlapping with both groups gives tighter bounds.
 
-All three are admissible, so IDA* returns the minimum-move solution.
+All four are admissible, so IDA* returns the minimum-move solution.
 
 At search time, the 18 root moves are distributed across threads
 (`ParallelFastIDASolver`): each threshold iteration runs 18 tasks in parallel,
@@ -37,7 +37,7 @@ cmake --build build-release
 
 ## Usage
 
-On first use, build the pattern databases (one-time, ~5–10 minutes):
+On first use, build the pattern databases (one-time, ~5-10 minutes):
 
 ```bash
 mkdir -p data
@@ -74,21 +74,21 @@ Then solve:
 
 ## Performance
 
-Benchmarked on an 8-core machine (Apple M-series, Release build, 3 pattern DBs):
+Benchmarked on an 8-core machine (Apple M-series, Release build, 4 pattern DBs):
 
 | Scramble depth | Nodes explored | Solve time |
-|----------------|---------------|------------|
+|----------------|----------------|------------|
 | ≤ 10 moves | < 1,000 | < 2 ms |
-| 12 moves | 5K – 65K | 3 – 27 ms |
-| 15 moves | 9M – 88M | 5 – 48 s (median ~32 s) |
+| 12 moves | 5K - 65K | 3 - 27 ms |
+| 15 moves | 9M - 88M | 5 - 48 s (median ~32 s) |
 
 Performance at depth 15 varies widely depending on how tight the heuristic
 lower bound is for that particular scramble. The worst-case scrambles (where
-all three pattern DBs give a lower bound several moves below the true optimum)
+all four pattern DBs give a lower bound several moves below the true optimum)
 require more IDA* iterations and dominate the solve time.
 
 Without the pattern databases (`--no-pattern-db`), the misplaced-cubies heuristic
-is far weaker — expect 100–1000× slower for scrambles deeper than 10 moves.
+is far weaker - expect 100-1000x slower for scrambles deeper than 10 moves.
 
 ## Tests
 
@@ -104,30 +104,30 @@ pattern database admissibility, and move-table correctness.
 
 ```
 src/
-  cube.h / cube.cpp              — CubeState, composition, Lehmer encoding,
+  cube.h / cube.cpp              - CubeState, composition, Lehmer encoding,
                                    encode_edge_partial
-  moves.h / moves.cpp            — 18 moves, move tables, parsing, pruning
-  solver.h / solver.cpp          — IDASolver (IDA* with pluggable heuristic)
-  pattern_db.h / pattern_db.cpp  — CornerPatternDB, EdgePatternDB,
+  moves.h / moves.cpp            - 18 moves, move tables, parsing, pruning
+  solver.h / solver.cpp          - IDASolver (IDA* with pluggable heuristic)
+  pattern_db.h / pattern_db.cpp  - CornerPatternDB, EdgePatternDB,
                                    PatternDatabases
-  fast_solver.h / fast_solver.cpp — FastIDASolver, ParallelFastIDASolver,
+  fast_solver.h / fast_solver.cpp - FastIDASolver, ParallelFastIDASolver,
                                     CP/CO/EO/INV_EP move tables
-  heuristic.h / heuristic.cpp    — heuristic wrappers for IDASolver
-  utils.h / utils.cpp            — validation, ASCII display, formatting
-  main.cpp                       — CLI entry point
-  build_db_main.cpp              — pattern database builder
+  heuristic.h / heuristic.cpp    - heuristic wrappers for IDASolver
+  utils.h / utils.cpp            - validation, ASCII display, formatting
+  main.cpp                       - CLI entry point
+  build_db_main.cpp              - pattern database builder
 tests/
-  test_moves.cpp        — move generation and encoding
-  test_solver.cpp       — IDA* correctness and optimality
-  test_pattern_db.cpp   — pattern database admissibility
-  test_fast_solver.cpp  — move-table correctness
-  benchmark.cpp         — performance benchmark (not a CTest test)
-data/                   — generated DB files (not committed)
-  corner_pattern.db     — ~42 MB
-  edge_orient.db        — ~2 KB
-  edge1_pattern.db      — ~21 MB (edges UR UF UL UB DR DF)
-  edge2_pattern.db      — ~21 MB (edges DL DB FR FL BL BR)
-  edge3_pattern.db      — ~21 MB (alternating edges UR UL DR DL FR BL)
+  test_moves.cpp        - move generation and encoding
+  test_solver.cpp       - IDA* correctness and optimality
+  test_pattern_db.cpp   - pattern database admissibility
+  test_fast_solver.cpp  - move-table correctness
+  benchmark.cpp         - performance benchmark (not a CTest test)
+data/                   - generated DB files (not committed)
+  corner_pattern.db     - ~42 MB
+  edge_orient.db        - ~2 KB
+  edge1_pattern.db      - ~21 MB (edges UR UF UL UB DR DF)
+  edge2_pattern.db      - ~21 MB (edges DL DB FR FL BL BR)
+  edge3_pattern.db      - ~21 MB (alternating edges UR UL DR DL FR BL)
 ```
 
 ## References

@@ -97,7 +97,7 @@ private:
     // Set by search_threshold_single for early exit when another thread finds a solution.
     const std::atomic<bool>* abort_ = nullptr;
 
-    // Core state — cp/co/ep/eo arrays + encoded indices for corner and full EO
+    // Core state - cp/co/ep/eo arrays + encoded indices for corner and full EO
     uint8_t  cp_[8], co_[8], ep_[12], eo_[12];
     uint32_t cp_idx_;   // Lehmer index of cp_
     uint32_t co_idx_;   // base-3 index of co_
