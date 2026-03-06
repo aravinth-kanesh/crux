@@ -1,6 +1,6 @@
 # Optimal Rubik's Cube Solver
 
-Finds provably optimal solutions to any 3×3 Rubik's cube scramble - guaranteed
+Finds provably optimal solutions to any 3×3 Rubik's cube scramble — guaranteed
 minimum move count (≤20 moves, by God's Number).
 
 Implements IDA* (Iterative Deepening A\*) with pattern databases, based on
@@ -9,19 +9,25 @@ Pattern Databases*.
 
 ## Algorithm
 
-The solver uses IDA* with two heuristics combined via `max()`:
+The solver uses `FastIDASolver`, a cache-friendly IDA* variant with O(1) index
+updates via precomputed move tables. The heuristic is `max(h₁, h₂, h₃)`:
 
-- **Corner pattern database** - stores the minimum moves to solve all 8 corners
-  for every possible corner configuration (8! × 3⁷ = 88,179,840 states, ~42 MB).
-  Built once via BFS from the solved state and saved to disk.
-- **Edge orientation database** - stores the minimum moves to correctly orient
-  all 12 edges (2¹¹ = 2048 states, ~2 KB).
+- **Corner pattern database** — minimum moves to solve all 8 corners for every
+  corner configuration (8! × 3⁷ = 88,179,840 states, ~42 MB on disk).
+- **Edge partial database, group 0** — minimum moves to correctly place and
+  orient edges UR, UF, UL, UB, DR, DF (P(12,6) × 2⁶ = 42,577,920 states, ~21 MB).
+- **Edge partial database, group 1** — same for edges DL, DB, FR, FL, BL, BR
+  (~21 MB).
 
-Both are admissible heuristics (never overestimate), so IDA* finds optimal solutions.
+All three are admissible, so IDA* returns the minimum-move solution.
+
+At search time, the 18 root moves are distributed across threads
+(`ParallelFastIDASolver`): each threshold iteration runs 18 tasks in parallel,
+and threads abort early once any thread finds a solution.
 
 ## Build
 
-Requires CMake ≥ 3.16 and a C++17 compiler.
+Requires CMake ≥ 3.16, a C++17 compiler, and POSIX threads.
 
 ```bash
 cmake -B build-release -DCMAKE_BUILD_TYPE=Release
@@ -30,7 +36,7 @@ cmake --build build-release
 
 ## Usage
 
-On first use, build the pattern databases (one-time, ~5-10 minutes):
+On first use, build the pattern databases (one-time, ~5–10 minutes):
 
 ```bash
 mkdir -p data
@@ -67,43 +73,59 @@ Then solve:
 
 ## Performance
 
-With the corner pattern database loaded:
+Benchmarked on an 8-core machine (Apple M-series, Release build, 3 pattern DBs):
 
-| Scramble depth | Typical solve time |
-|----------------|--------------------|
-| 10 moves | < 0.01s |
-| 15 moves | < 1s |
-| 18 moves | 10–60s |
-| 20 moves | minutes |
+| Scramble depth | Nodes explored | Solve time |
+|----------------|---------------|------------|
+| ≤ 10 moves | < 1,000 | < 2 ms |
+| 12 moves | 5K – 65K | 3 – 27 ms |
+| 15 moves | 11M – 112M | 6 – 53 s (median ~34 s) |
 
-Without the pattern database (`--no-pattern-db`), the misplaced-cubies heuristic
-is much weaker - expect 10–100× slower for deep scrambles.
+Performance at depth 15 varies widely depending on how tight the heuristic
+lower bound is for that particular scramble. The worst-case scrambles (where
+all three pattern DBs give a lower bound several moves below the true optimum)
+require more IDA* iterations and dominate the solve time.
+
+Without the pattern databases (`--no-pattern-db`), the misplaced-cubies heuristic
+is far weaker — expect 100–1000× slower for scrambles deeper than 10 moves.
 
 ## Tests
 
 ```bash
-ctest --output-on-failure
+cmake -B build && cmake --build build
+cd build && ctest --output-on-failure
 ```
 
-28 tests covering move correctness, IDA* optimality, and pattern database
-admissibility.
+32 tests covering move generation and encoding, IDA* correctness and optimality,
+pattern database admissibility, and move-table correctness.
 
 ## Project Structure
 
 ```
 src/
-  cube.h / cube.cpp         - cube state, composition, Lehmer encoding
-  moves.h / moves.cpp       - 18 moves, move tables, parsing, pruning
-  solver.h / solver.cpp     - IDA* implementation
-  pattern_db.h / pattern_db.cpp  - corner and edge-orient pattern databases
-  heuristic.h / heuristic.cpp    - heuristic wrappers
-  utils.h / utils.cpp       - validation, formatting
-  main.cpp                  - CLI entry point
-  build_db_main.cpp         - pattern database builder
+  cube.h / cube.cpp              — CubeState, composition, Lehmer encoding,
+                                   encode_edge_partial
+  moves.h / moves.cpp            — 18 moves, move tables, parsing, pruning
+  solver.h / solver.cpp          — IDASolver (IDA* with pluggable heuristic)
+  pattern_db.h / pattern_db.cpp  — CornerPatternDB, EdgePatternDB,
+                                   PatternDatabases
+  fast_solver.h / fast_solver.cpp — FastIDASolver, ParallelFastIDASolver,
+                                    CP/CO/EO/INV_EP move tables
+  heuristic.h / heuristic.cpp    — heuristic wrappers for IDASolver
+  utils.h / utils.cpp            — validation, ASCII display, formatting
+  main.cpp                       — CLI entry point
+  build_db_main.cpp              — pattern database builder
 tests/
-  test_moves.cpp            - move generation and encoding tests
-  test_solver.cpp           - solver correctness and optimality tests
-  test_pattern_db.cpp       - pattern database admissibility tests
+  test_moves.cpp        — move generation and encoding
+  test_solver.cpp       — IDA* correctness and optimality
+  test_pattern_db.cpp   — pattern database admissibility
+  test_fast_solver.cpp  — move-table correctness
+  benchmark.cpp         — performance benchmark (not a CTest test)
+data/                   — generated DB files (not committed)
+  corner_pattern.db     — ~42 MB
+  edge_orient.db        — ~2 KB
+  edge1_pattern.db      — ~21 MB (edges UR UF UL UB DR DF)
+  edge2_pattern.db      — ~21 MB (edges DL DB FR FL BL BR)
 ```
 
 ## References

@@ -1,134 +1,111 @@
-// Performance benchmarks for the cube solver
+// Performance benchmarks for the cube solver.
+// Uses ParallelFastIDASolver (all three pattern DBs, 18 threads at root level).
+// Run from the project root: ./build-release/benchmark --data-dir data
 #include "../src/cube.h"
 #include "../src/moves.h"
-#include "../src/solver.h"
 #include "../src/pattern_db.h"
-#include "../src/heuristic.h"
+#include "../src/fast_solver.h"
 #include "../src/utils.h"
 #include <iostream>
 #include <vector>
-#include <chrono>
+#include <numeric>
+#include <algorithm>
 #include <iomanip>
 #include <string>
 #include <cstring>
 
 struct BenchResult {
-    std::string scramble;
-    int solution_length;
+    int    solution_length;  // -1 if not found
     uint64_t nodes;
     double seconds;
 };
 
-static BenchResult run_benchmark(IDASolver& solver, const std::string& scramble_str) {
-    auto moves = parse_move_sequence(scramble_str);
-    CubeState state = apply_moves(SOLVED_CUBE, moves);
-
-    auto result = solver.solve(state, 20);
-
-    return BenchResult{
-        scramble_str,
-        result.found ? (int)result.moves.size() : -1,
-        result.nodes_explored,
-        result.time_seconds
-    };
+static BenchResult run_one(ParallelFastIDASolver& solver,
+                            const std::vector<int>& scramble_moves) {
+    CubeState state = apply_moves(SOLVED_CUBE, scramble_moves);
+    auto r = solver.solve(state, 20);
+    return {r.found ? (int)r.moves.size() : -1, r.nodes_explored, r.time_seconds};
 }
 
 int main(int argc, char* argv[]) {
     std::string data_dir = "data";
-    bool use_db = true;
-
     for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "--data-dir") == 0 && i + 1 < argc) {
+        if (strcmp(argv[i], "--data-dir") == 0 && i + 1 < argc)
             data_dir = argv[++i];
-        } else if (strcmp(argv[i], "--no-db") == 0) {
-            use_db = false;
-        }
     }
 
     init_moves();
 
-    std::function<int(const CubeState&)> hfn;
     PatternDatabases dbs;
+    dbs.load_or_build(data_dir);
+    build_cp_move_table();
+    build_co_move_table();
+    build_eo_move_table();
+    build_inv_ep_table();
 
-    if (use_db) {
-        bool loaded = dbs.load_or_build(data_dir);
-        if (!loaded) {
-            std::cerr << "Pattern databases built (first run)\n";
-        }
-        hfn = make_heuristic(dbs);
-    } else {
-        std::cerr << "Using simple misplaced heuristic\n";
-        hfn = heuristic_misplaced;
-    }
+    ParallelFastIDASolver solver(dbs.corner_db, dbs.edge_db1, dbs.edge_db2);
 
-    IDASolver solver(hfn);
-
-    // Benchmark cases: known scrambles at various depths
-    struct TestCase {
-        std::string name;
-        std::string scramble;
-    };
-
-    std::vector<TestCase> cases = {
-        {"3 moves",  "R U F"},
-        {"5 moves",  "R U F D B"},
-        {"6 moves",  "R U F D' B' L"},
+    // Fixed scrambles at known optimal depths for reproducibility
+    struct Case { const char* label; const char* scramble; };
+    const std::vector<Case> fixed_cases = {
+        {"4 moves",  "R U R' U'"},
         {"8 moves",  "R U R' U' F2 D' L B"},
-        {"10 moves", "R U R' U' R' F R2 U' R'"},
+        {"10 moves", "R U R' U' R' F R2 U' R' U"},
         {"12 moves", "R U2 R' U' R U' R' L' U2 L U L' U L"},
-        // Superflip-adjacent (hard cases)
-        {"15 moves (random)", "R U2 R' F2 R U R' U' F' U' F R2 U' R' U"},
+        {"15 moves", "R U2 R' F2 R U R' U' F' U' F R2 U' R' U"},
     };
 
-    std::cout << "\n=== Rubik's Cube Solver Benchmark ===\n";
-    std::cout << "Heuristic: " << (use_db ? "Pattern Databases" : "Misplaced Cubies") << "\n\n";
-
+    std::cout << "=== Fixed scrambles ===\n";
     std::cout << std::left
-              << std::setw(20) << "Case"
-              << std::setw(8)  << "Moves"
-              << std::setw(14) << "Nodes"
-              << std::setw(12) << "Time(s)"
-              << "\n"
-              << std::string(54, '-') << "\n";
+              << std::setw(12) << "Label"
+              << std::setw(8)  << "Sol"
+              << std::setw(16) << "Nodes"
+              << "Time(s)\n"
+              << std::string(50, '-') << "\n";
 
-    double total_time = 0;
-    for (const auto& tc : cases) {
-        auto r = run_benchmark(solver, tc.scramble);
-        total_time += r.seconds;
-
+    for (const auto& c : fixed_cases) {
+        auto moves = parse_move_sequence(c.scramble);
+        auto r = run_one(solver, moves);
         std::cout << std::left
-                  << std::setw(20) << tc.name
+                  << std::setw(12) << c.label
                   << std::setw(8)  << (r.solution_length >= 0 ? std::to_string(r.solution_length) : "FAIL")
-                  << std::setw(14) << r.nodes
-                  << std::setw(12) << std::fixed << std::setprecision(3) << r.seconds
-                  << "\n";
+                  << std::setw(16) << r.nodes
+                  << std::fixed << std::setprecision(4) << r.seconds << "\n";
     }
 
-    std::cout << std::string(54, '-') << "\n";
-    std::cout << "Total time: " << std::fixed << std::setprecision(3) << total_time << "s\n";
-
-    // Test random scrambles at increasing depths
-    std::cout << "\n=== Random Scramble Benchmarks ===\n";
+    // Random scrambles at several depths — 5 seeds each for representative spread
+    const int SEEDS = 5;
+    std::cout << "\n=== Random scrambles (5 seeds each) ===\n";
     std::cout << std::left
-              << std::setw(20) << "Depth"
-              << std::setw(8)  << "Moves"
-              << std::setw(14) << "Nodes"
+              << std::setw(8)  << "Depth"
+              << std::setw(8)  << "Sol"
+              << std::setw(16) << "Nodes"
               << std::setw(12) << "Time(s)"
-              << "\n"
-              << std::string(54, '-') << "\n";
+              << "Scramble\n"
+              << std::string(80, '-') << "\n";
 
-    for (int depth : {8, 10, 12}) {
-        auto scramble = random_scramble(depth, 12345);
-        std::string scramble_str = format_move_sequence(scramble);
-        CubeState state = apply_moves(SOLVED_CUBE, scramble);
-        auto result = solver.solve(state, 20);
-
-        std::cout << std::left
-                  << std::setw(20) << ("depth=" + std::to_string(depth))
-                  << std::setw(8)  << (result.found ? std::to_string((int)result.moves.size()) : "FAIL")
-                  << std::setw(14) << result.nodes_explored
-                  << std::setw(12) << std::fixed << std::setprecision(3) << result.time_seconds
-                  << "\n";
+    for (int depth : {8, 10, 12, 15}) {
+        std::vector<double> times;
+        for (int seed = 1; seed <= SEEDS; seed++) {
+            auto scramble = random_scramble(depth, (unsigned)seed);
+            auto r = run_one(solver, scramble);
+            times.push_back(r.seconds);
+            std::cout << std::left
+                      << std::setw(8)  << ("d=" + std::to_string(depth))
+                      << std::setw(8)  << (r.solution_length >= 0 ? std::to_string(r.solution_length) : "FAIL")
+                      << std::setw(16) << r.nodes
+                      << std::setw(12) << std::fixed << std::setprecision(4) << r.seconds
+                      << format_move_sequence(scramble) << "\n";
+        }
+        double avg = std::accumulate(times.begin(), times.end(), 0.0) / times.size();
+        double med = times[SEEDS / 2];
+        std::sort(times.begin(), times.end());
+        std::cout << "  depth=" << depth
+                  << " avg=" << std::fixed << std::setprecision(3) << avg << "s"
+                  << " median=" << times[SEEDS / 2] << "s"
+                  << " min=" << times.front() << "s"
+                  << " max=" << times.back() << "s\n\n";
+        (void)med;
     }
 
     return 0;
