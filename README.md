@@ -47,7 +47,7 @@ mkdir -p data
 Then solve:
 
 ```bash
-# Solve a specific scramble
+# Solve a specific scramble (prints coloured cube before and after)
 ./build-release/cube_solver --scramble "R U R' U' F2 D' L2 U"
 
 # Solve a random scramble of given depth
@@ -56,9 +56,12 @@ Then solve:
 # Skip pattern databases (much slower, useful for testing)
 ./build-release/cube_solver --scramble "R U F" --no-pattern-db
 
-# Interactive mode
+# Interactive mode — enter moves, type 'show' to display the cube, 'solve' to solve
 ./build-release/cube_solver --interactive
 ```
+
+The solver prints an ANSI-coloured cross-layout of the cube before and after
+each solve. Set `NO_COLOR=1` to fall back to letter codes (W/Y/G/B/O/R).
 
 ### Options
 
@@ -74,13 +77,13 @@ Then solve:
 
 ## Performance
 
-Benchmarked on an 8-core machine (Apple M-series, Release build, 4 pattern DBs):
+Measured on Apple M-series (8-core, Release build, 4 pattern DBs, parallel solver):
 
 | Scramble depth | Nodes explored | Solve time |
 |----------------|----------------|------------|
 | ≤ 10 moves | < 1,000 | < 2 ms |
-| 12 moves | 5K - 65K | 3 - 27 ms |
-| 15 moves | 9M - 88M | 5 - 48 s (median ~32 s) |
+| 12 moves | 4K – 46K | 3 – 25 ms (median 13 ms) |
+| 15 moves | 9M – 88M | 5 – 49 s (median 33 s) |
 
 Performance at depth 15 varies widely depending on how tight the heuristic
 lower bound is for that particular scramble. The worst-case scrambles (where
@@ -88,7 +91,7 @@ all four pattern DBs give a lower bound several moves below the true optimum)
 require more IDA* iterations and dominate the solve time.
 
 Without the pattern databases (`--no-pattern-db`), the misplaced-cubies heuristic
-is far weaker - expect 100-1000x slower for scrambles deeper than 10 moves.
+is far weaker — expect 100–1000× slower for scrambles deeper than 10 moves.
 
 ## Tests
 
