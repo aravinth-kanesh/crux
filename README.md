@@ -133,6 +133,31 @@ data/                   - generated DB files (not committed)
   edge3_pattern.db      - ~21 MB (alternating edges UR UL DR DL FR BL)
 ```
 
+## 3D Visualiser
+
+`visualise.py` calls the solver and animates the scramble and solution in a
+3D OpenGL window. Each move is rendered with a smooth ease-in/ease-out
+rotation, with a slowly orbiting camera and diffuse lighting.
+
+Requires Python 3, numpy, pygame, and PyOpenGL:
+
+```bash
+pip install numpy pygame PyOpenGL PyOpenGL_accelerate
+```
+
+```bash
+# Animate a specific scramble and its solution
+python3 visualise.py --scramble "R U R' U' F2 D' L2 U" --data-dir data
+
+# Animate a random 15-move scramble
+python3 visualise.py --random-depth 15 --data-dir data
+
+# Show scramble only, without solving
+python3 visualise.py --scramble "R U R' U'" --no-solve
+```
+
+Press `Esc` or `Q` to quit.
+
 ## References
 
 - Korf, R. E. (1997). *Finding Optimal Solutions to Rubik's Cube Using Pattern
