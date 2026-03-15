@@ -180,6 +180,10 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
+    // Show scrambled state
+    std::cout << "Scrambled:\n";
+    print_cube_ascii(state);
+
     // Solve
     std::cout << "Solving...\n";
     auto result = solve_fn(state, max_depth);
@@ -199,6 +203,9 @@ int main(int argc, char* argv[]) {
             std::cout << "Scramble:  " << format_move_sequence(scramble_moves) << "\n";
             std::cout << "Solution:  " << format_move_sequence(result.moves) << "\n";
         }
+
+        std::cout << "Solved:\n";
+        print_cube_ascii(check);
     }
 
     if (!verify_solution.empty()) {
