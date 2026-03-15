@@ -222,7 +222,10 @@ def draw_cubies(cubies, anim_ids, anim_R_partial):
         glPushMatrix()
 
         if id(cubie) in anim_ids:
-            # Apply partial rotation around the cube origin for this layer
+            # Rotate cubie position around origin, then apply same rotation locally
+            vp = anim_R_partial @ cubie.pos
+            vx, vy, vz = float(vp[0]), float(vp[1]), float(vp[2])
+            glTranslatef(vx, vy, vz)
             m = anim_R_partial
             gl_m = [
                 m[0,0], m[1,0], m[2,0], 0,
@@ -230,15 +233,13 @@ def draw_cubies(cubies, anim_ids, anim_R_partial):
                 m[0,2], m[1,2], m[2,2], 0,
                 0,      0,      0,      1,
             ]
-            glTranslatef(px, py, pz)
             glMultMatrixf(gl_m)
-            glTranslatef(-px, -py, -pz)
-
-        glTranslatef(px, py, pz)
+        else:
+            vx, vy, vz = px, py, pz
+            glTranslatef(px, py, pz)
 
         # Black body
-        r, g, b = FACE_RGB['K']
-        glColor3f(r, g, b)
+        glColor3f(*FACE_RGB['K'])
         glBegin(GL_QUADS)
         for d, verts in BODY_VERTS.items():
             glNormal3fv(d)
@@ -246,12 +247,13 @@ def draw_cubies(cubies, anim_ids, anim_R_partial):
                 glVertex3fv(v)
         glEnd()
 
-        # Coloured stickers
+        # Coloured stickers — outer faces only
         glBegin(GL_QUADS)
         for d, verts in STICKER_VERTS.items():
+            if d[0]*vx + d[1]*vy + d[2]*vz < 0.1:
+                continue  # inner face, skip
             col = cubie.colour(d)
-            r, g, b = FACE_RGB[col]
-            glColor3f(r, g, b)
+            glColor3f(*FACE_RGB[col])
             glNormal3fv(d)
             for v in verts:
                 glVertex3fv(v)
@@ -341,7 +343,7 @@ def main():
     pygame.init()
     W, H = 900, 700
     pygame.display.set_mode((W, H), DOUBLEBUF | OPENGL)
-    pygame.display.set_caption('Crux — Optimal Rubik\'s Cube Solver')
+    pygame.display.set_caption('Crux - Optimal Rubik\'s Cube Solver')
 
     glViewport(0, 0, W, H)
     glEnable(GL_DEPTH_TEST)
@@ -464,7 +466,7 @@ def main():
         done = queue_idx >= len(anim_queue)
         if done:
             phase_label = 'Solved!' if solution else 'Scrambled'
-        draw_text_2d(f'Crux — Optimal Rubik\'s Cube Solver', 14, H - 30, W, H,
+        draw_text_2d(f'Crux - Optimal Rubik\'s Cube Solver', 14, H - 30, W, H,
                      colour=(180, 180, 220), size=18)
         draw_text_2d(phase_label, 14, 14, W, H,
                      colour=(240, 200, 80) if 'Solv' in phase_label else (160, 220, 160),
