@@ -444,6 +444,8 @@ def main():
                     anim_ids = set()
                     frame_in_anim = 0
                     queue_idx += 1
+                    if phase == 'solve' and queue_idx < len(anim_queue) and anim_queue[queue_idx][0] == 'done':
+                        phase_label = 'Solved!'
 
         # --- Camera orbit ---
         cam_azimuth += cam_speed
